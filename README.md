@@ -41,16 +41,18 @@ cargo install --git https://github.com/HelgeSverre/sourcefour sourcefour
 
 ### Nix (this fork)
 
-The flake currently supports **x86_64-linux** and builds Sourcefour and GPUI
-from source; no AppImage or separately installed GPUI is needed.
+The fork's `main` branch tracks upstream. **`nix-support`** carries the flake
+and local fixes; use that branch explicitly. The flake currently supports
+**x86_64-linux** and builds Sourcefour and GPUI from source; no AppImage or
+separately installed GPUI is needed.
 
 ```sh
 # Try it without installing (pass a repository path after --).
-nix run github:smantzavinos/sourcefour -- ~/code/foo
-nix run github:smantzavinos/sourcefour -- --demo
+nix run 'github:smantzavinos/sourcefour?ref=nix-support' -- ~/code/foo
+nix run 'github:smantzavinos/sourcefour?ref=nix-support' -- --demo
 
 # Or install it into your user profile.
-nix profile add github:smantzavinos/sourcefour
+nix profile add 'github:smantzavinos/sourcefour?ref=nix-support'
 ```
 
 The package includes a desktop entry and icon. Its launcher supplies the native
@@ -59,7 +61,8 @@ without replacing tools already on your PATH. GitHub CLI authentication remains
 optional and uses your installed `gh`. GPU drivers come from the host; on a
 non-NixOS Linux distribution, graphics may require a wrapper such as nixGL.
 
-For declarative installation, add this fork as a flake input and include
+For declarative installation, use
+`sourcefour.url = "github:smantzavinos/sourcefour?ref=nix-support";` and include
 `sourcefour.packages.${pkgs.stdenv.hostPlatform.system}.default` in your
 Home Manager `home.packages`. Keep its own nixpkgs input unless your shared
 pin supplies Rust 1.97 or newer. Commit the consumer's `flake.lock` to pin the
@@ -76,13 +79,14 @@ nix flake check
 ```
 
 `nix flake check` builds the package, checks the installed CLI, and runs upstream's
-X11 window-startup smoke test under Xvfb with Mesa software Vulkan. It does not
-run the Rust test suite; use `just check` for that. Native Wayland and hardware
+X11 window-startup smoke test under Xvfb with Mesa software Vulkan. The smoke
+test also rejects zero-size SVG rendering errors. It does not run the Rust
+test suite; use `just check` for that. Native Wayland and hardware
 GPU operation still need testing on the target desktop. If native Wayland does
 not show a window, try the X11 backend through XWayland:
 
 ```sh
-env -u WAYLAND_DISPLAY nix run github:smantzavinos/sourcefour -- ~/code/foo
+env -u WAYLAND_DISPLAY nix run 'github:smantzavinos/sourcefour?ref=nix-support' -- ~/code/foo
 ```
 
 After changing Rust dependencies, update `Cargo.lock` and `cargoHash` in
