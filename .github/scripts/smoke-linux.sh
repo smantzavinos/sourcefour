@@ -35,7 +35,16 @@ wm_pid=$!
 "$binary" --demo > "$temporary_directory/app.log" 2>&1 &
 app_pid=$!
 
+assert_no_zero_size_svg() {
+  if grep -Fq "can't render at a zero size" "$temporary_directory/app.log"; then
+    tail -n 40 "$temporary_directory/app.log" >&2
+    echo "Sourcefour attempted to render a zero-size SVG" >&2
+    return 1
+  fi
+}
+
 for ((attempt = 0; attempt < 60; attempt++)); do
+  assert_no_zero_size_svg
   if ! kill -0 "$app_pid" 2>/dev/null; then
     cat "$temporary_directory/app.log" >&2
     echo "Sourcefour exited before opening its window" >&2
@@ -45,7 +54,8 @@ for ((attempt = 0; attempt < 60; attempt++)); do
     # Give rendering a chance to fail after the native window is created.
     sleep 3
     if kill -0 "$app_pid" 2>/dev/null; then
-      echo "Sourcefour opened an X11 window and stayed running"
+      assert_no_zero_size_svg
+      echo "Sourcefour opened an X11 window and stayed running without zero-size SVG errors"
       exit 0
     fi
   fi

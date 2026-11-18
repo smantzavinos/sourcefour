@@ -275,6 +275,7 @@ fn remote_marker(theme: &Theme) -> gpui::Svg {
     svg()
         .path("icons/globe.svg")
         .size(px(12.0))
+        .flex_none()
         .text_color(theme.orange)
 }
 
